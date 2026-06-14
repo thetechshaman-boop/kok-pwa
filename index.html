@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>ΚΟΚ Ελλάδας | Πλήρης εφαρμογή</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            padding: 12px;
+            padding-bottom: 40px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 {
+            background: #0f2b3d;
+            color: white;
+            padding: 20px;
+            border-radius: 24px;
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .toolbar button, .filter-bar button {
+            background: #0f2b3d;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            background: white;
+        }
+        .search-box button {
+            background: #0f2b3d;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 40px;
+            font-weight: bold;
+        }
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        .title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            border-left: 5px solid #c0392b;
+            padding-left: 12px;
+            margin-bottom: 10px;
+        }
+        .badge {
+            display: inline-block;
+            background: #e74c3c;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+        .fine-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.8rem;
+        }
+        .fine-table th, .fine-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .fine-table th {
+            background: #0f2b3d;
+            color: white;
+        }
+        .info-row {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .exception {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 0.8rem;
+        }
+        .record-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 30px;
+            margin-top: 12px;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 20px 0 12px;
+            color: #0f2b3d;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background: #0f2b3d;
+            color: white;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 30px;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🚔 ΚΟΚ Ελλάδας<br>Πλήρης Offline</h1>
+
+    <div class="toolbar">
+        <button onclick="showHistory()">📋 Ιστορικό</button>
+        <button onclick="clearHistory()">🗑️ Διαγραφή</button>
+        <button onclick="resetFilters()">🔄 Επαναφορά</button>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Αναζήτηση... π.χ. ταχύτητα, αλκοόλ, STOP">
+        <button onclick="searchViolations()">🔍</button>
+    </div>
+
+    <div class="filter-bar">
+        <button onclick="filterByCategory('Ε4')">🚨 Ε4</button>
+        <button onclick="filterByCategory('Ε3-Β')">⚠️ Ε3-Β</button>
+        <button onclick="filterByCategory('Ε2-Β')">📌 Ε2-Β</button>
+    </div>
+
+    <div id="violationsContainer"></div>
+
+    <div class="section-title">🛑 Πινακίδες Σήμανσης</div>
+    <table id="signsTable">
+        <tr><th>Κωδικός</th><th>Περιγραφή</th></tr>
+        <tr><td>Κ-1α</td><td>Επικίνδυνη αριστερή στροφή</td></tr>
+        <tr><td>Κ-12</td><td>Ολισθηρό οδόστρωμα</td></tr>
+        <tr><td>Ρ-2</td><td>STOP (υποχρεωτική διακοπή)</td></tr>
+        <tr><td>Ρ-32</td><td>Όριο ταχύτητας</td></tr>
+        <tr><td>Π-17</td><td>Αρχή κατοικημένης περιοχής</td></tr>
+        <tr><td>Π-57</td><td>Αστυνομία</td></tr>
+    </table>
+
+    <div class="section-title">📍 Κωδικοί ΟΤΑ (παράδειγμα)</div>
+    <table id="otaTable">
+        <tr><th>Νομός</th><th>Δήμος</th><th>Κωδικός</th></tr>
+        <tr><td>Αττικής (Αθηνών)</td><td>Αθηναίων</td><td>9505</td></tr>
+        <tr><td>Θεσσαλονίκης</td><td>Θεσσαλονίκης</td><td>5433</td></tr>
+        <tr><td>Αττικής (Δυτικής)</td><td>Ελευσίνος</td><td>9704</td></tr>
+    </table>
+
+    <footer>© ΚΟΚ Ελλάδας - Πλήρης εφαρμογή | Πηγές: ΚΟΚ 5209/25, 5256/25, 5290/26, Ν.3446/2006, Σ.Ε.Σ.Ο.</footer>
+</div>
+
+<script>
+    // ΒΑΣΗ ΔΕΔΟΜΕΝΩΝ ΠΑΡΑΒΑΣΕΩΝ (ενσωματωμένη)
+    const violationsData = [
+        { title: "Άρθρο 7 | Ρ-2 STOP", desc: "Παραβίαση πινακίδας STOP", category: "Ε4", points: 19, licenseDays: 60, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 700, fineTruck: 1200, fineMoto: 350, exception: "Αν προκληθεί ατύχημα: αφαίρεση 60 ημέρες + ποινικές κυρώσεις", keywords: ["stop","στόπ","διακοπή"] },
+        { title: "Άρθρο 9 | Ερυθρός σηματοδότης", desc: "Διέλευση με κόκκινο φανάρι", category: "Ε4", points: 20, licenseDays: 60, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 700, fineTruck: 1200, fineMoto: 350, exception: "", keywords: ["κόκκινο","φανάρι","ερυθρό"] },
+        { title: "Άρθρο 24 | Υπέρβαση >50km/h", desc: "Υπέρβαση ορίου ταχύτητας άνω των 50 km/h", category: "Ε4", points: 20, licenseDays: 60, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 700, fineTruck: 1200, fineMoto: 350, exception: ">200km/h: 2.000€, αφαίρεση 1 έτος", keywords: ["ταχύτητα","υπέρβαση"] },
+        { title: "Άρθρο 46 | Αλκοόλ 0,81-1,10 g/l", desc: "Οδήγηση υπό αλκοόλ 0,81-1,10 g/l", category: "Ε4", points: 20, licenseDays: 90, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 700, fineTruck: 1200, fineMoto: 350, exception: "Επαγγελματίες: όριο 0,20 g/l", keywords: ["αλκοόλ","μέθη"] },
+        { title: "Άρθρο 38 | Στάθμευση σε ράμπα/θέση ΑμεΑ", desc: "Στάθμευση σε ράμπα ή ειδική θέση ΑμεΑ", category: "Ε2-Β", points: 0, licenseDays: 0, platesDays: 70, deadline: 15, paymentTo: "ΟΤΑ", payRequired: true, fineCar: 150, fineTruck: 150, fineMoto: 75, exception: "Αφαίρεση πινακίδων 70 ημέρες", keywords: ["στάθμευση","αμεα","ράμπα"] },
+        { title: "Άρθρο 90 | Έλλειψη ΚΤΕΟ", desc: "Κυκλοφορία χωρίς Δελτίο Τεχνικού Ελέγχου", category: "Ε3-Β", points: 0, licenseDays: 0, platesDays: 30, deadline: 10, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 350, fineTruck: 700, fineMoto: 175, exception: "Επιστροφή πινακίδων μετά από ΚΤΕΟ", keywords: ["κτεο","τεχνικός"] },
+        { title: "Άρθρο 16 | Μη χρήση κράνους", desc: "Οδήγηση μηχανής χωρίς κράνος", category: "Ε3-Β", points: 5, licenseDays: 30, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 0, fineTruck: 0, fineMoto: 350, exception: "Συνεπιβάτης: 350€ χωρίς αφαίρεση", keywords: ["κράνος","μηχανή"] },
+        { title: "Άρθρο 17 | Χρήση κινητού", desc: "Χρήση κινητού τηλεφώνου κατά την οδήγηση", category: "Ε3-Β", points: 4, licenseDays: 30, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 350, fineTruck: 350, fineMoto: 175, exception: "", keywords: ["κινητό","τηλέφωνο"] },
+        { title: "Άρθρο 16 | Μη χρήση ζώνης", desc: "Οδήγηση χωρίς ζώνη ασφαλείας", category: "Ε3-Β", points: 5, licenseDays: 30, platesDays: 0, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 350, fineTruck: 350, fineMoto: 0, exception: "", keywords: ["ζώνη","ασφαλείας"] },
+        { title: "Ν.3446 | Υπέρβαρο φορτηγού >20%", desc: "Υπέρβαση βάρους φορτηγού άνω του 20%", category: "Ε4", points: 0, licenseDays: 0, platesDays: 120, deadline: 60, paymentTo: "ΔΟΥ", payRequired: true, fineCar: 0, fineTruck: 3000, fineMoto: 0, exception: "Ακινητοποίηση οχήματος", keywords: ["υπέρβαρο","φορτηγό"] }
+    ];
+
+    let currentViolations = [...violationsData];
+
+    function renderViolations(arr) {
+        const container = document.getElementById("violationsContainer");
+        if (!arr.length) {
+            container.innerHTML = '<div style="background:white; padding:30px; text-align:center; border-radius:24px;">❌ Δεν βρέθηκαν παραβάσεις</div>';
+            return;
+        }
+        let html = "";
+        for (let v of arr) {
+            html += `
+                <div class="card">
+                    <div class="title">${v.title}</div>
+                    <div><span class="badge">${v.category}</span> <span class="badge" style="background:#2980b9;">ΣΕΣΟ: ${v.points}</span></div>
+                    <p style="margin:10px 0"><strong>${v.desc}</strong></p>
+                    <table class="fine-table">
+                        <tr><th>Είδος οχήματος</th><th>Πρόστιμο (€)</th><th>Αφαίρεση άδειας</th><th>Αφαίρεση πινακίδων</th></tr>
+                        <tr><td>Επιβατηγό ΙΧ</td><td>${v.fineCar}</td><td>${v.licenseDays} ημέρες</td><td>${v.platesDays}</td></tr>
+                        <tr><td>Φορτηγό / Λεωφορείο</td><td>${v.fineTruck}</td><td>${v.licenseDays} ημέρες</td><td>${v.platesDays}</td></tr>
+                        <tr><td>Μοτοσικλέτα</td><td>${v.fineMoto}</td><td>${v.licenseDays} ημέρες</td><td>${v.platesDays}</td></tr>
+                    </table>
+                    <div class="info-row"><strong>Προθεσμία πληρωμής:</strong> ${v.deadline} ημέρες (${Math.floor(v.deadline/30)} μήνες)</div>
+                    <div class="info-row"><strong>Καταβολή σε:</strong> ${v.paymentTo}</div>
+                    <div class="info-row"><strong>Επιστροφή εγγράφων μετά από πληρωμή:</strong> ${v.payRequired ? "✅ ΝΑΙ" : "❌ ΟΧΙ"}</div>
+                    ${v.exception ? `<div class="exception">⚠️ ${v.exception}</div>` : ""}
+                    <button class="record-btn" onclick="saveToHistory('${v.title.replace(/'/g, "\\'")}')">📌 Καταγραφή ελέγχου</button>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function searchViolations() {
+        const q = document.getElementById("searchInput").value.toLowerCase().trim();
+        if (q === "") currentViolations = [...violationsData];
+        else currentViolations = violationsData.filter(v => v.title.toLowerCase().includes(q) || v.desc.toLowerCase().includes(q) || v.keywords.some(k => k.includes(q)));
+        renderViolations(currentViolations);
+    }
+
+    function filterByCategory(cat) {
+        currentViolations = violationsData.filter(v => v.category === cat);
+        renderViolations(currentViolations);
+    }
+
+    function resetFilters() {
+        document.getElementById("searchInput").value = "";
+        currentViolations = [...violationsData];
+        renderViolations(currentViolations);
+    }
+
+    function saveToHistory(title) {
+        let history = localStorage.getItem("kokHistory");
+        let list = history ? JSON.parse(history) : [];
+        list.unshift({ title, date: new Date().toLocaleString() });
+        if (list.length > 50) list.pop();
+        localStorage.setItem("kokHistory", JSON.stringify(list));
+        alert("✅ Καταγράφηκε: " + title);
+    }
+
+    function showHistory() {
+        let history = localStorage.getItem("kokHistory");
+        let list = history ? JSON.parse(history) : [];
+        if (!list.length) { alert("📭 Κανένας έλεγχος"); return; }
+        let msg = "📋 ΙΣΤΟΡΙΚΟ:\n";
+        list.forEach((item, i) => msg += `${i+1}. ${item.date}\n${item.title}\n\n`);
+        alert(msg);
+    }
+
+    function clearHistory() {
+        if (confirm("Διαγραφή ιστορικού;")) localStorage.removeItem("kokHistory"), alert("Διαγράφηκε");
+    }
+
+    renderViolations(violationsData);
+</script>
+</body>
+</html>
